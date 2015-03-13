@@ -1,20 +1,42 @@
 # -*- coding: utf8 -*-
 
 from lib import ircbot
-from modules import quote
+import importlib
+from ConfigParser import SafeConfigParser, NoOptionError
+import json
 
 
 class Bot(ircbot.SingleServerIRCBot):
     def __init__(self):
-        ircbot.SingleServerIRCBot.__init__(self, [("detax.eu", 8000, "lesuperpass")],
-                                           "tyxiebot/tyxie", "tyxieBoT")
+        self.parser = SafeConfigParser()
+        self.parser.read('config.ini')
+        server = self.parser.get('connection', 'server')
+        port = self.parser.getint('connection', 'port')
+        nickname = self.parser.get('connection', 'nickname')
+        realname = self.parser.get('connection', 'realname')
+        try:
+            password = self.parser.get('connection', 'password')
+        except NoOptionError:
+            password = ''
+        try:
+            self.modules = json.loads(self.parser.get('modules', 'load'))
+        except NoOptionError:
+            self.modules = []
+
+        ircbot.SingleServerIRCBot.__init__(self, [(server, port, password)],
+                                           nickname, realname)
 
     def on_welcome(self, serv, ev):
         serv.join("#bot")
 
     def on_pubmsg(self, serv, ev):
-        quote.on_pubmsg(self, serv, ev)
-
+        for module in self.modules:
+            module = importlib.import_module('modules.' + module)
+            try:
+                function = getattr(module, 'on_pubmsg')
+                function(self, serv, ev)
+            except AttributeError:
+                pass
 
 if __name__ == "__main__":
     Bot().start()
