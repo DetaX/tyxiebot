@@ -22,18 +22,37 @@ class Bot(ircbot.SingleServerIRCBot):
             self.modules = json.loads(self.parser.get('modules', 'load'))
         except NoOptionError:
             self.modules = []
+        try:
+            self.chans = json.loads(self.parser.get('channels', 'join'))
+        except NoOptionError:
+            self.chans = []
 
         ircbot.SingleServerIRCBot.__init__(self, [(server, port, password)],
                                            nickname, realname)
 
     def on_welcome(self, serv, ev):
-        serv.join("#bot")
+        for module in self.modules:
+            module = importlib.import_module('modules.' + module)
+            try:
+                function = getattr(module, 'on_welcome')
+                function(self, serv, ev)
+            except AttributeError:
+                pass
 
     def on_pubmsg(self, serv, ev):
         for module in self.modules:
             module = importlib.import_module('modules.' + module)
             try:
                 function = getattr(module, 'on_pubmsg')
+                function(self, serv, ev)
+            except AttributeError:
+                pass
+
+    def on_whoischannels(self, serv, ev):
+        for module in self.modules:
+            module = importlib.import_module('modules.' + module)
+            try:
+                function = getattr(module, 'on_whoischannels')
                 function(self, serv, ev)
             except AttributeError:
                 pass
