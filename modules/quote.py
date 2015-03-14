@@ -2,7 +2,6 @@
 
 from datetime import datetime
 import sqlite3
-from lib import irclib
 
 quote_db = 'quote.db'
 quote_table_name = 'quote'
@@ -57,7 +56,6 @@ qm = QuoteManager()
 
 
 def on_pubmsg(self, serv, ev):
-    user = irclib.nm_to_n(ev.source())
     chan = ev.target()
     msg = ev.arguments()[0]
     msg_split = msg.split()
