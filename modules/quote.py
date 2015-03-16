@@ -76,7 +76,7 @@ def on_pubmsg(self, serv, ev):
             if len(msg_split) > 3:
                 quote = Quote(id=qm.get_next_id(), message=' '.join(msg_split[2:]), date_time=datetime.now())
                 qm.add_quote(quote)
-                serv.privmsg(chan, 'La citation a été ajouté ! (' + str(quote.id) + ')')
+                serv.privmsg(chan, 'La citation a été ajoutée ! (' + str(quote.id) + ')')
         if msg_split[1] == 'show':
             if len(msg_split) > 2:
                 quote = qm.get_quote(msg_split[2])
@@ -93,4 +93,8 @@ def on_pubmsg(self, serv, ev):
                 quotes = qm.search_quote(' '.join(msg_split[2:]))
                 for quote in quotes:
                     serv.privmsg(chan, '#' + str(quote.id) + ' : (' + quote.datetime + ') ' + quote.message)
+        if msg_split[1] == 'del':
+            if len(msg_split) > 2:
+                qm.del_quote(msg_split[2])
+                serv.privmsg(chan, 'La citation ' + msg_split[2] + ' a été supprimée !')
 

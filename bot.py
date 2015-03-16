@@ -59,3 +59,4 @@ class Bot(ircbot.SingleServerIRCBot):
 
 if __name__ == "__main__":
     Bot().start()
+
