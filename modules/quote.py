@@ -1,5 +1,5 @@
 # -*- coding: utf8 -*-
-
+from bot import bot
 from datetime import datetime
 import sqlite3
 
@@ -20,9 +20,10 @@ class Quote:
 class QuoteManager:
     def __init__(self):
         self.conn = sqlite3.connect(quote_db)
+        self.conn.text_factory = str
         self.cur = self.conn.cursor()
         self.cur.execute(
-            'create table if not exists ' + quote_table_name + ' (id integer primary key autoincrement, message text, datetime text)')
+            'create table if not exists ' + quote_table_name + ' (id integer primary key, message text, datetime text)')
         self.conn.commit()
 
     def __del__(self):
@@ -38,8 +39,8 @@ class QuoteManager:
             return 1
 
     def add_quote(self, quote):
-        self.cur.execute('insert into ' + quote_table_name + ' (message, datetime) values (?,?)',
-                         (quote.message, str(quote.datetime)))
+        self.cur.execute('insert into ' + quote_table_name + ' (id, message, datetime) values (?,?,?)',
+                         (quote.id, quote.message, str(quote.datetime)))
         self.conn.commit()
 
     def del_quote(self, quote_id):
@@ -63,7 +64,9 @@ class QuoteManager:
             quotes.append(quote)
         return quotes
 
-qm = QuoteManager()
+
+def on_welcome(self, serv, ev):
+    bot.qm = QuoteManager()
 
 
 def on_pubmsg(self, serv, ev):
@@ -72,29 +75,29 @@ def on_pubmsg(self, serv, ev):
     msg_split = msg.split()
 
     if msg_split[0] == '!quote':
-        if msg_split[1] == 'add':
-            if len(msg_split) > 3:
-                quote = Quote(id=qm.get_next_id(), message=' '.join(msg_split[2:]), date_time=datetime.now())
-                qm.add_quote(quote)
-                serv.privmsg(chan, 'La citation a été ajoutée ! (' + str(quote.id) + ')')
-        if msg_split[1] == 'show':
-            if len(msg_split) > 2:
-                quote = qm.get_quote(msg_split[2])
-                if quote:
-                    serv.privmsg(chan, '(' + quote.datetime + ') ' + quote.message)
-                else:
-                    serv.privmsg(chan, 'La citation ' + msg_split[2] + ' n\'existe pas')
-        if msg_split[1] == 'list':
-            quotes = qm.get_quotes()
-            for quote in quotes:
-                serv.privmsg(chan, '#' + str(quote.id) + ' : (' + quote.datetime + ') ' + quote.message)
-        if msg_split[1] == 'search':
-            if len(msg_split) > 2:
-                quotes = qm.search_quote(' '.join(msg_split[2:]))
+        if len(msg_split) > 1:
+            if msg_split[1] == 'add':
+                if len(msg_split) > 3:
+                    quote = Quote(id=bot.qm.get_next_id(), message=' '.join(msg_split[2:]), date_time=datetime.now())
+                    bot.qm.add_quote(quote)
+                    serv.privmsg(chan, 'La citation a été ajoutée ! (' + str(quote.id) + ')')
+            if msg_split[1] == 'show':
+                if len(msg_split) > 2:
+                    quote = bot.qm.get_quote(msg_split[2])
+                    if quote:
+                        serv.privmsg(chan, '(' + quote.datetime + ') ' + quote.message)
+                    else:
+                        serv.privmsg(chan, 'La citation ' + msg_split[2] + ' n\'existe pas')
+            if msg_split[1] == 'list':
+                quotes = bot.qm.get_quotes()
                 for quote in quotes:
                     serv.privmsg(chan, '#' + str(quote.id) + ' : (' + quote.datetime + ') ' + quote.message)
-        if msg_split[1] == 'del':
-            if len(msg_split) > 2:
-                qm.del_quote(msg_split[2])
-                serv.privmsg(chan, 'La citation ' + msg_split[2] + ' a été supprimée !')
-
+            if msg_split[1] == 'search':
+                if len(msg_split) > 2:
+                    quotes = bot.qm.search_quote(' '.join(msg_split[2:]))
+                    for quote in quotes:
+                        serv.privmsg(chan, '#' + str(quote.id) + ' : (' + quote.datetime + ') ' + quote.message)
+            if msg_split[1] == 'del':
+                if len(msg_split) > 2:
+                    bot.qm.del_quote(msg_split[2])
+                    serv.privmsg(chan, 'La citation ' + msg_split[2] + ' a été supprimée !')

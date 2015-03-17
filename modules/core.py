@@ -1,10 +1,21 @@
+# -*- coding: utf8 -*-
+
 from os import system
+import json
+from ConfigParser import NoOptionError
+from bot import bot
 
 
 def on_welcome(self, serv, ev):
-        serv.send_raw("WHOIS " + ev.target().split('/')[0])
-        for chan in self.chans:
-            serv.join(chan)
+    try:
+        self.chans = json.loads(self.parser.get('channels', 'join'))
+    except NoOptionError:
+        self.chans = []
+    bot.nickname = ev.target().split('/')[0]
+    serv.send_raw("WHOIS " + bot.nickname)
+    for chan in self.chans:
+        serv.join(chan)
+        serv.privmsg(chan, 'Bot loaded.')
 
 
 def on_whoischannels(self, serv, ev):

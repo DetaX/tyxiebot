@@ -22,10 +22,6 @@ class Bot(ircbot.SingleServerIRCBot):
             self.modules = json.loads(self.parser.get('modules', 'load'))
         except NoOptionError:
             self.modules = []
-        try:
-            self.chans = json.loads(self.parser.get('channels', 'join'))
-        except NoOptionError:
-            self.chans = []
 
         ircbot.SingleServerIRCBot.__init__(self, [(server, port, password)],
                                            nickname, realname)
@@ -57,6 +53,7 @@ class Bot(ircbot.SingleServerIRCBot):
             except AttributeError:
                 pass
 
+bot = Bot()
 if __name__ == "__main__":
-    Bot().start()
+    bot.start()
 
