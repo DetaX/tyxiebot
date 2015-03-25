@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 1999-2002  Joel Rosdahl
-# Portions Copyright © 2011 Jason R. Coombs
+# Portions Copyright ï¿½ 2011 Jason R. Coombs
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -81,6 +81,20 @@ except Exception:
     VERSION = ()
 
 DEBUG = False
+
+wrap_socket_orig = ssl_mod.wrap_socket
+
+def wrap_socket_patched(sock, keyfile=None, certfile=None,
+                        server_side=False, cert_reqs=ssl_mod.CERT_NONE,
+                        ssl_version=ssl_mod.PROTOCOL_TLSv1_2, ca_certs=None,
+                        do_handshake_on_connect=True,
+                        suppress_ragged_eofs=True, ciphers=None):
+    return wrap_socket_orig(sock, keyfile, certfile, server_side,
+                            cert_reqs, ssl_version, ca_certs,
+                            do_handshake_on_connect,
+                            suppress_ragged_eofs, ciphers)
+
+ssl_mod.wrap_socket = wrap_socket_patched
 
 # TODO
 # ----

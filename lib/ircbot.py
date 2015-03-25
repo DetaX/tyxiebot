@@ -30,6 +30,7 @@ import sys
 
 from lib import irclib
 from lib.irclib import nm_to_n
+import traceback
 
 class SingleServerIRCBot(irclib.SimpleIRCClient):
     """A single-server IRC bot class.
@@ -86,6 +87,7 @@ class SingleServerIRCBot(irclib.SimpleIRCClient):
     def _connect(self):
         """[Internal]"""
         password = None
+        print "Trying to connect..."
         if len(self.server_list[0]) > 2:
             password = self.server_list[0][2]
         try:
@@ -93,8 +95,11 @@ class SingleServerIRCBot(irclib.SimpleIRCClient):
                          self.server_list[0][1],
                          self._nickname,
                          password,
-                         ircname=self._realname)
+                         ircname=self._realname,
+                         ssl=True)
         except irclib.ServerConnectionError:
+            traceback.print_exc()
+            print "Error occurred"
             pass
 
     def _on_disconnect(self, c, e):
