@@ -1,19 +1,29 @@
 # -*- coding: utf8 -*-
 
-from lib import ircbot
 import importlib
-from ConfigParser import SafeConfigParser, NoOptionError
+from configparser import NoOptionError, ConfigParser
 import json
 
+from irc import bot
+from irc import client
 
-class Bot(ircbot.SingleServerIRCBot):
+from lib.ssl_wrapper import wrap_socket_patched
+
+
+class Bot(bot.SingleServerIRCBot):
     def __init__(self):
-        self.parser = SafeConfigParser()
+        self.parser = ConfigParser()
         self.parser.read('config.ini')
         server = self.parser.get('connection', 'server')
         port = self.parser.getint('connection', 'port')
         nickname = self.parser.get('connection', 'nickname')
         realname = self.parser.get('connection', 'realname')
+        ssl = self.parser.get('connection', 'ssl')
+        factory = None
+
+        if ssl:
+            factory = client.connection.Factory(wrapper=wrap_socket_patched)
+
         try:
             password = self.parser.get('connection', 'password')
         except NoOptionError:
@@ -23,8 +33,12 @@ class Bot(ircbot.SingleServerIRCBot):
         except NoOptionError:
             self.modules = []
 
-        ircbot.SingleServerIRCBot.__init__(self, [(server, port, password)],
-                                           nickname, realname)
+        print('Trying to connect to %s:%s' % (server, port))
+        if factory is not None:
+            bot.SingleServerIRCBot.__init__(self, [(server, port, password)], nickname, realname,
+                                            connect_factory=factory)
+        else:
+            bot.SingleServerIRCBot.__init__(self, [(server, port, password)], nickname, realname)
 
     def on_welcome(self, serv, ev):
         for module in self.modules:
@@ -52,6 +66,7 @@ class Bot(ircbot.SingleServerIRCBot):
                 function(self, serv, ev)
             except AttributeError:
                 pass
+
 
 bot = Bot()
 if __name__ == "__main__":

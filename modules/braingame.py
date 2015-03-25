@@ -2,8 +2,6 @@
 
 import random
 import operator
-from time import sleep
-import threading
 import re
 
 
@@ -99,8 +97,8 @@ game = BrainGame()
 
 
 def on_pubmsg(self, serv, ev):
-    chan = ev.target()
-    msg = ev.arguments()[0]
+    chan = ev.target
+    msg = ev.arguments[0]
     msg_split = msg.split()
     game.serv = serv
     game.chan = chan

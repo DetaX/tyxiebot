@@ -2,9 +2,9 @@
 
 from datetime import datetime
 import sqlite3
-from lib import irclib
+import irc
 import json
-from ConfigParser import NoOptionError
+from configparser import NoOptionError
 from bot import bot
 
 log_db = 'log.db'
@@ -14,7 +14,8 @@ log_table_name_prefix = 'log_'
 class LogManager:
     def __init__(self, chans):
         self.conn = sqlite3.connect(log_db)
-        self.conn.text_factory = str
+        #self.conn.text_factory = str
+        self.text_factory = lambda x: str(x, 'utf-8', 'ignore')
         self.cur = self.conn.cursor()
         self.chans = chans
         for chan in self.chans:
@@ -41,13 +42,14 @@ def on_welcome(self, serv, ev):
 
 
 def privmsg(self, target, text):
-    self.send_raw("PRIVMSG %s :%s" % (target, text))
+
+    self.send_raw('PRIVMSG %s :%s' % (target, text.decode('utf-8')))
     if target in bot.lm.chans:
         bot.lm.add_log(target, datetime.now(), bot.nickname, text)
 
 
 def on_pubmsg(self, serv, ev):
-    user = irclib.nm_to_n(ev.source())
-    chan = ev.target()
-    msg = ev.arguments()[0]
+    user = irc.nm_to_n(ev.source)
+    chan = ev.target
+    msg = ev.arguments[0]
     bot.lm.add_log(chan, datetime.now(), user, msg)
