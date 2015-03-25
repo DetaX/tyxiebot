@@ -2,6 +2,8 @@
 from bot import bot
 from datetime import datetime
 import sqlite3
+import sys
+from lib import irc_wrapper
 
 quote_db = 'quote.db'
 quote_table_name = 'quote'
@@ -20,7 +22,8 @@ class Quote:
 class QuoteManager:
     def __init__(self):
         self.conn = sqlite3.connect(quote_db)
-        self.conn.text_factory = str
+        #self.conn.text_factory = str
+        self.text_factory = lambda x: str(x, 'utf-8', 'ignore')
         self.cur = self.conn.cursor()
         self.cur.execute(
             'create table if not exists ' + quote_table_name + ' (id integer primary key, message text, datetime text)')
@@ -40,7 +43,7 @@ class QuoteManager:
 
     def add_quote(self, quote):
         self.cur.execute('insert into ' + quote_table_name + ' (id, message, datetime) values (?,?,?)',
-                         (quote.id, quote.message, str(quote.datetime)))
+                         (quote.id, quote.message, quote.datetime))
         self.conn.commit()
 
     def del_quote(self, quote_id):
@@ -70,34 +73,37 @@ def on_welcome(self, serv, ev):
 
 
 def on_pubmsg(self, serv, ev):
-    chan = ev.target()
-    msg = ev.arguments()[0]
+    chan = ev.target
+    msg = ev.arguments[0]
     msg_split = msg.split()
 
     if msg_split[0] == '!quote':
         if len(msg_split) > 1:
             if msg_split[1] == 'add':
+                print(msg_split)
                 if len(msg_split) > 3:
                     quote = Quote(id=bot.qm.get_next_id(), message=' '.join(msg_split[2:]), date_time=datetime.now())
                     bot.qm.add_quote(quote)
-                    serv.privmsg(chan, 'La citation a été ajoutée ! (' + str(quote.id) + ')')
+                    #irc_wrapper.privmsg(serv, chan, 'La citation a été ajoutée ! (' + str(quote.id) + ')')
+                    #serv.send_raw('PRIVMSG %s :%s' % (chan, 'La citation a été ajoutée ! (' + str(quote.id) + ')'))
+                    irc_wrapper.privmsg(serv, chan, 'La citation a été ajoutée ! (' + str(quote.id) + ')')
             if msg_split[1] == 'show':
                 if len(msg_split) > 2:
                     quote = bot.qm.get_quote(msg_split[2])
                     if quote:
-                        serv.privmsg(chan, '(' + quote.datetime + ') ' + quote.message)
+                        irc_wrapper.privmsg(serv, chan, '(' + quote.datetime + ') ' + quote.message)
                     else:
-                        serv.privmsg(chan, 'La citation ' + msg_split[2] + ' n\'existe pas')
+                        irc_wrapper.privmsg(serv, chan, 'La citation ' + msg_split[2] + ' n\'existe pas')
             if msg_split[1] == 'list':
                 quotes = bot.qm.get_quotes()
                 for quote in quotes:
-                    serv.privmsg(chan, '#' + str(quote.id) + ' : (' + quote.datetime + ') ' + quote.message)
+                    irc_wrapper.privmsg(serv, chan, '#' + str(quote.id) + ' : (' + quote.datetime + ') ' + quote.message)
             if msg_split[1] == 'search':
                 if len(msg_split) > 2:
                     quotes = bot.qm.search_quote(' '.join(msg_split[2:]))
                     for quote in quotes:
-                        serv.privmsg(chan, '#' + str(quote.id) + ' : (' + quote.datetime + ') ' + quote.message)
+                        irc_wrapper.privmsg(serv, chan, '#' + str(quote.id) + ' : (' + quote.datetime + ') ' + quote.message)
             if msg_split[1] == 'del':
                 if len(msg_split) > 2:
                     bot.qm.del_quote(msg_split[2])
-                    serv.privmsg(chan, 'La citation ' + msg_split[2] + ' a été supprimée !')
+                    irc_wrapper.privmsg(serv, chan, 'La citation ' + msg_split[2] + ' a été supprimée !')
