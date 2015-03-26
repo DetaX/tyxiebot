@@ -55,7 +55,7 @@ class Calculus(Question):
         response = round(ops.get(op3)(ops.get(op2)(ops.get(op1)(num1, num2), num3), num4), 2)
         if str(response)[-2:] == '.0':
             response = int(response)
-        question = 'Calcul mental : ((({} {} {}) {} {}) {} {}) ?\n'.format(num1, op1, num2, op2, num3, op3, num4)
+        question = 'Calcul mental : ((({} {} {}) {} {}) {} {}) ?'.format(num1, op1, num2, op2, num3, op3, num4)
         super(Calculus, self).__init__(question, response)
 
 
@@ -74,7 +74,7 @@ class BrainGame():
                 if not self.question:
                     self.question = Calculus()
                 if self.question:
-                    if self.question.clues_left :
+                    if self.question.clues_left or not self.question.state:
                         self.serv.privmsg(self.chan, self.question.get_question())
                         self.serv.privmsg(self.chan, self.question.get_coded_response())
                         if self.question.clues_left > 0:
@@ -82,7 +82,7 @@ class BrainGame():
                         else:
                             self.serv.execute_delayed(30, self.main_loop, (self.question,))
                     else:
-                        self.serv.privmsg(self.chan, 'Bande de sous-merdes')
+                        self.serv.privmsg(self.chan, 'La réponse était : %s' % str(self.question.response))
                         self.question = Calculus()
                         self.serv.execute_delayed(5, self.main_loop, (self.question,))
 

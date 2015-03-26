@@ -42,14 +42,13 @@ def on_welcome(self, serv, ev):
 
 
 def privmsg(self, target, text):
-
-    self.send_raw('PRIVMSG %s :%s' % (target, text.decode('utf-8')))
+    self.send_raw('PRIVMSG %s :%s' % (target, text))
     if target in bot.lm.chans:
         bot.lm.add_log(target, datetime.now(), bot.nickname, text)
 
 
 def on_pubmsg(self, serv, ev):
-    user = irc.nm_to_n(ev.source)
+    user = ev.source.nick
     chan = ev.target
     msg = ev.arguments[0]
     bot.lm.add_log(chan, datetime.now(), user, msg)
