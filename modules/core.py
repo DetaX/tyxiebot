@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 
 from os import system
+from subprocess import call, check_output, STDOUT
 import json
 from configparser import NoOptionError
 from bot import bot
@@ -35,5 +36,13 @@ def on_pubmsg(self, serv, ev):
     msg_split = msg.split()
     if msg_split[0] == '!reload':
         serv.privmsg(chan, 'Reloading...')
-        system('python bot.py &')
+        call('python bot.py &', shell=True)
         self.die()
+    elif msg_split[0] == '!stop':
+        serv.privmsg(chan, 'Stopping...')
+        self.die()
+    elif msg_split[0] == '!update':
+        output = check_output('git pull;exit 0', stderr=STDOUT,  shell=True).decode('utf-8').rstrip()
+        serv.privmsg(chan, output)
+
+

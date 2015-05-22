@@ -8,19 +8,18 @@ from configparser import NoOptionError
 from bot import bot
 
 log_db = 'log.db'
-log_table_name_prefix = 'log_'
+log_table= 'log'
 
 
 class LogManager:
     def __init__(self, chans):
         self.conn = sqlite3.connect(log_db)
-        #self.conn.text_factory = str
         self.text_factory = lambda x: str(x, 'utf-8', 'ignore')
         self.cur = self.conn.cursor()
         self.chans = chans
         for chan in self.chans:
             self.cur.execute(
-                'create table if not exists ' + log_table_name_prefix + chan.strip('#') + ' (datetime text, author text, message text)')
+                'create table if not exists ' + log_table + ' (chan text, datetime text, author text, message text)')
             self.conn.commit()
 
     def __del__(self):
@@ -28,8 +27,8 @@ class LogManager:
         self.conn.close()
 
     def add_log(self, chan, date_time, author, message):
-        self.cur.execute('insert into ' + log_table_name_prefix + chan.strip('#') + ' (datetime, author, message) values (?,?,?)',
-                         (str(date_time), author, message))
+        self.cur.execute('insert into ' + log_table + ' (chan, datetime, author, message) values (?, ?,?,?)',
+                         (chan, str(date_time), author, message))
         self.conn.commit()
 
 
