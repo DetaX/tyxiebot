@@ -42,7 +42,7 @@ def on_pubmsg(self, serv, ev):
         serv.privmsg(chan, 'Stopping...')
         self.die()
     elif msg_split[0] == '!update':
-        output = check_output('git pull;exit 0', stderr=STDOUT,  shell=True).decode('utf-8').rstrip()
-        serv.privmsg(chan, output)
-
+        output = check_output('git pull;exit 0', stderr=STDOUT,  shell=True).decode('utf-8')
+        for line in output.split('\n'):
+                    serv.privmsg(chan, line)
 
