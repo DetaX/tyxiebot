@@ -1,4 +1,5 @@
 # -*- coding: utf8 -*-
+from pathlib import _Accessor
 
 import random
 import operator
@@ -42,20 +43,31 @@ class Question(object):
 class Calculus(Question):
     def __init__(self):
         ops = {'+': operator.add,
-           '-': operator.sub,
-           '*': operator.mul,
-           '/': operator.truediv}
-        num1 = random.randint(1,10)
-        num2 = random.randint(1,10)
-        num3 = random.randint(1,10)
-        num4 = random.randint(1,10)
-        op1 = random.choice(list(ops.keys()))
-        op2 = random.choice(list(ops.keys()))
-        op3 = random.choice(list(ops.keys()))
-        response = round(ops.get(op3)(ops.get(op2)(ops.get(op1)(num1, num2), num3), num4), 2)
+               '-': operator.sub,
+               '*': operator.mul,
+               '/': operator.truediv}
+        numbers = []
+        for i in range(0, random.randint(3, 5)):
+            number = random.randint(1, 10)
+            numbers.append([number, str(number)])
+        while len(numbers) > 1:
+            a, b = numbers.pop(random.randint(0, len(numbers)-1)), numbers.pop(random.randint(0, len(numbers)-1))
+            op = random.choice(list(ops.keys()))
+            res = ops.get(op)(a[0], b[0])
+            if a[1].count(')') == 1:
+                if (op == '+' and ('+' in a[1] or '-' in a[1])) \
+                        or (op == '*' and '*' in a[1]):
+                    a[1] = a[1][1:-1]
+            if b[1].count(')') == 1:
+                if (op == '+' and ('+' in b[1] or '-' in b[1])) \
+                        or (op == '*'  and ('*' in b[1] or '/' in b[1])):
+                    b[1] = b[1][1:-1]
+            calcul = '{} {} {}'.format(a[1], op, b[1]) if len(numbers) == 0 else '({} {} {})'.format(a[1], op, b[1])
+            numbers.append([res, calcul])
+        response = round(numbers[0][0], 2)
         if str(response)[-2:] == '.0':
             response = int(response)
-        question = 'Calcul mental : ((({} {} {}) {} {}) {} {}) ?'.format(num1, op1, num2, op2, num3, op3, num4)
+        question = 'Calcul mental : {} ?'.format(numbers[0][1])
         super(Calculus, self).__init__(question, response)
 
 
