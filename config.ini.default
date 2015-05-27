@@ -1,0 +1,16 @@
+[connection]
+server = tyxie.net
+port = 6697
+password =
+nickname = bot
+realname = bot
+ssl = True
+
+[modules]
+load: ["log", "core", "quote", "braingame"]
+
+[channels]
+join: ["#bot"]
+
+[log]
+chans: ["#bot"]
