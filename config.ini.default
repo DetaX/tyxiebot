@@ -1,5 +1,5 @@
 [connection]
-server = tyxie.net
+server = irc.freenode.net
 port = 6697
 password =
 nickname = bot
